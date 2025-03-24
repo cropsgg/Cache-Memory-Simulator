@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache Memory Simulator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #1a237e;
+        }
+
+        .config-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .cache-visualization {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .cache-block {
+            display: inline-block;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 5px;
+            background: #e3f2fd;
+            border-radius: 4px;
+            min-width: 120px;
+        }
+
+        .cache-block.hit {
+            background: #c8e6c9;
+            animation: highlight 1s;
+        }
+
+        .cache-block.miss {
+            background: #ffcdd2;
+            animation: highlight 1s;
+        }
+
+        @keyframes highlight {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .cache-set {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+
+        input, select, button {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background: #1a237e;
+            color: white;
+            cursor: pointer;
+            border: none;
+            padding: 10px 20px;
+        }
+
+        button:hover {
+            background: #283593;
+        }
+
+        .statistics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: #e8eaf6;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a237e;
+        }
+
+        .error {
+            color: red;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cache Memory Simulator</h1>
+        </div>
+
+        <div class="config-panel">
+            <h2>Cache Configuration</h2>
+            <div>
+                <label>Cache Size (bytes):
+                    <select id="cacheSize">
+                        <option value="1024">1024 (1KB)</option>
+                        <option value="2048">2048 (2KB)</option>
+                        <option value="4096">4096 (4KB)</option>
+                    </select>
+                </label>
+                <label>Block Size (bytes):
+                    <select id="blockSize">
+                        <option value="16">16</option>
+                        <option value="32">32</option>
+                        <option value="64">64</option>
+                    </select>
+                </label>
+                <label>Associativity:
+                    <select id="associativity">
+                        <option value="1">Direct Mapped</option>
+                        <option value="2">2-Way</option>
+                        <option value="4">4-Way</option>
+                        <option value="8">8-Way</option>
+                    </select>
+                </label>
+                <button onclick="initializeCache()">Initialize Cache</button>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="panel">
+                <h2>Memory Access</h2>
+                <div>
+                    <input type="number" id="address" placeholder="Memory Address">
+                    <select id="operation">
+                        <option value="read">Read</option>
+                        <option value="write">Write</option>
+                    </select>
+                    <button onclick="accessMemory()">Access</button>
+                    <div id="error" class="error"></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Statistics</h2>
+                <div class="statistics">
+                    <div class="stat-box">
+                        <div>Accesses</div>
+                        <div id="totalAccesses" class="stat-value">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div>Hits</div>
+                        <div id="hits" class="stat-value">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div>Misses</div>
+                        <div id="misses" class="stat-value">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div>Hit Rate</div>
+                        <div id="hitRate" class="stat-value">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cache-visualization">
+            <h2>Cache Visualization</h2>
+            <div id="cacheDisplay"></div>
+        </div>
+    </div>
+
+    <script>
+        class CacheBlock {
+            constructor(blockSize) {
+                this.valid = false;
+                this.dirty = false;
+                this.tag = -1;
+                this.lastUsed = 0;
+                this.data = new Array(blockSize).fill(0);
+            }
+        }
+
+        class CacheSimulator {
+            constructor(cacheSize, blockSize, associativity) {
+                this.cacheSize = cacheSize;
+                this.blockSize = blockSize;
+                this.associativity = associativity;
+                this.numSets = (cacheSize / blockSize) / associativity;
+                this.accessCount = 0;
+                this.hits = 0;
+                this.misses = 0;
+
+                // Initialize cache structure
+                this.cache = Array(this.numSets).fill().map(() => 
+                    Array(associativity).fill().map(() => new CacheBlock(blockSize))
+                );
+            }
+
+            getSet(address) {
+                return Math.floor((address / this.blockSize) % this.numSets);
+            }
+
+            getTag(address) {
+                return Math.floor(address / (this.blockSize * this.numSets));
+            }
+
+            getLRUBlock(setIndex) {
+                let lruBlock = 0;
+                let minCount = this.cache[setIndex][0].lastUsed;
+
+                for (let i = 1; i < this.associativity; i++) {
+                    if (this.cache[setIndex][i].lastUsed < minCount) {
+                        minCount = this.cache[setIndex][i].lastUsed;
+                        lruBlock = i;
+                    }
+                }
+                return lruBlock;
+            }
+
+            accessMemory(address, isWrite) {
+                this.accessCount++;
+                const setIndex = this.getSet(address);
+                const tag = this.getTag(address);
+                let hit = false;
+                let hitBlock = -1;
+
+                // Check if address is in cache
+                for (let i = 0; i < this.associativity; i++) {
+                    if (this.cache[setIndex][i].valid && this.cache[setIndex][i].tag === tag) {
+                        hit = true;
+                        hitBlock = i;
+                        break;
+                    }
+                }
+
+                if (hit) {
+                    this.hits++;
+                    this.cache[setIndex][hitBlock].lastUsed = this.accessCount;
+                    if (isWrite) {
+                        this.cache[setIndex][hitBlock].dirty = true;
+                    }
+                    return { hit: true, setIndex, blockIndex: hitBlock };
+                } else {
+                    this.misses++;
+                    const replaceBlock = this.getLRUBlock(setIndex);
+
+                    // Load new block
+                    this.cache[setIndex][replaceBlock].valid = true;
+                    this.cache[setIndex][replaceBlock].dirty = isWrite;
+                    this.cache[setIndex][replaceBlock].tag = tag;
+                    this.cache[setIndex][replaceBlock].lastUsed = this.accessCount;
+                    return { hit: false, setIndex, blockIndex: replaceBlock };
+                }
+            }
+
+            getStatistics() {
+                return {
+                    accesses: this.accessCount,
+                    hits: this.hits,
+                    misses: this.misses,
+                    hitRate: this.accessCount > 0 ? 
+                        (this.hits / this.accessCount * 100).toFixed(2) : 0
+                };
+            }
+        }
+
+        let cacheSimulator;
+
+        function initializeCache() {
+            const cacheSize = parseInt(document.getElementById('cacheSize').value);
+            const blockSize = parseInt(document.getElementById('blockSize').value);
+            const associativity = parseInt(document.getElementById('associativity').value);
+
+            cacheSimulator = new CacheSimulator(cacheSize, blockSize, associativity);
+            updateCacheVisualization();
+            updateStatistics();
+        }
+
+        function accessMemory() {
+            if (!cacheSimulator) {
+                document.getElementById('error').textContent = 'Please initialize the cache first!';
+                return;
+            }
+
+            const address = parseInt(document.getElementById('address').value);
+            const operation = document.getElementById('operation').value;
+
+            if (isNaN(address)) {
+                document.getElementById('error').textContent = 'Please enter a valid address!';
+                return;
+            }
+
+            document.getElementById('error').textContent = '';
+            const result = cacheSimulator.accessMemory(address, operation === 'write');
+            updateCacheVisualization(result);
+            updateStatistics();
+        }
+
+        function updateStatistics() {
+            if (!cacheSimulator) return;
+
+            const stats = cacheSimulator.getStatistics();
+            document.getElementById('totalAccesses').textContent = stats.accesses;
+            document.getElementById('hits').textContent = stats.hits;
+            document.getElementById('misses').textContent = stats.misses;
+            document.getElementById('hitRate').textContent = stats.hitRate + '%';
+        }
+
+        function updateCacheVisualization(lastAccess = null) {
+            if (!cacheSimulator) return;
+
+            const cacheDisplay = document.getElementById('cacheDisplay');
+            cacheDisplay.innerHTML = '';
+
+            for (let i = 0; i < cacheSimulator.numSets; i++) {
+                const setDiv = document.createElement('div');
+                setDiv.className = 'cache-set';
+                setDiv.innerHTML = `<strong>Set ${i}</strong>`;
+
+                for (let j = 0; j < cacheSimulator.associativity; j++) {
+                    const block = cacheSimulator.cache[i][j];
+                    const blockDiv = document.createElement('div');
+                    blockDiv.className = 'cache-block';
+                    
+                    if (lastAccess && lastAccess.setIndex === i && lastAccess.blockIndex === j) {
+                        blockDiv.className += lastAccess.hit ? ' hit' : ' miss';
+                    }
+
+                    blockDiv.innerHTML = `
+                        <div>Block ${j}</div>
+                        <div>Valid: ${block.valid}</div>
+                        <div>Tag: ${block.tag}</div>
+                        <div>Dirty: ${block.dirty}</div>
+                    `;
+                    setDiv.appendChild(blockDiv);
+                }
+                cacheDisplay.appendChild(setDiv);
+            }
+        }
+
+        
+        initializeCache();
+    </script>
+</body>
+</html>
