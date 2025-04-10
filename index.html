@@ -1,386 +1,511 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cache Memory Simulator</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f0f2f5;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #1a237e;
-        }
-
-        .config-panel {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .control-panel {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .panel {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .cache-visualization {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            overflow-x: auto;
-        }
-
-        .cache-block {
-            display: inline-block;
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin: 5px;
-            background: #e3f2fd;
-            border-radius: 4px;
-            min-width: 120px;
-        }
-
-        .cache-block.hit {
-            background: #c8e6c9;
-            animation: highlight 1s;
-        }
-
-        .cache-block.miss {
-            background: #ffcdd2;
-            animation: highlight 1s;
-        }
-
-        @keyframes highlight {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .cache-set {
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #f5f5f5;
-            border-radius: 4px;
-        }
-
-        input, select, button {
-            padding: 8px;
-            margin: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        button {
-            background: #1a237e;
-            color: white;
-            cursor: pointer;
-            border: none;
-            padding: 10px 20px;
-        }
-
-        button:hover {
-            background: #283593;
-        }
-
-        .statistics {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .stat-box {
-            background: #e8eaf6;
-            padding: 15px;
-            border-radius: 4px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1a237e;
-        }
-
-        .error {
-            color: red;
-            margin-top: 5px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cache Memory Simulator</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f0f2f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #1a237e;
+    }
+    .config-panel {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .control-panel {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .panel {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .cache-visualization {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+    .cache-block {
+      display: inline-block;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 5px;
+      background: #e3f2fd;
+      border-radius: 4px;
+      min-width: 120px;
+    }
+    .cache-block.hit {
+      background: #c8e6c9;
+      animation: highlight 1s;
+    }
+    .cache-block.miss {
+      background: #ffcdd2;
+      animation: highlight 1s;
+    }
+    @keyframes highlight {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .cache-set {
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 4px;
+    }
+    input, select, button {
+      padding: 8px;
+      margin: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background: #1a237e;
+      color: white;
+      cursor: pointer;
+      border: none;
+      padding: 10px 20px;
+    }
+    button:hover {
+      background: #283593;
+    }
+    .statistics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .stat-box {
+      background: #e8eaf6;
+      padding: 15px;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #1a237e;
+    }
+    .error {
+      color: red;
+      margin-top: 5px;
+    }
+    .memory-hierarchy {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .cache-level {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .cache-level h3 {
+      margin: 0 0 10px 0;
+      color: #1a237e;
+    }
+    .cache-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+    .cache-level.active {
+      border: 2px solid #4CAF50;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Cache Memory Simulator</h1>
-        </div>
-
-        <div class="config-panel">
-            <h2>Cache Configuration</h2>
-            <div>
-                <label>Cache Size (bytes):
-                    <select id="cacheSize">
-                        <option value="1024">1024 (1KB)</option>
-                        <option value="2048">2048 (2KB)</option>
-                        <option value="4096">4096 (4KB)</option>
-                    </select>
-                </label>
-                <label>Block Size (bytes):
-                    <select id="blockSize">
-                        <option value="16">16</option>
-                        <option value="32">32</option>
-                        <option value="64">64</option>
-                    </select>
-                </label>
-                <label>Associativity:
-                    <select id="associativity">
-                        <option value="1">Direct Mapped</option>
-                        <option value="2">2-Way</option>
-                        <option value="4">4-Way</option>
-                        <option value="8">8-Way</option>
-                    </select>
-                </label>
-                <button onclick="initializeCache()">Initialize Cache</button>
-            </div>
-        </div>
-
-        <div class="control-panel">
-            <div class="panel">
-                <h2>Memory Access</h2>
-                <div>
-                    <input type="number" id="address" placeholder="Memory Address">
-                    <select id="operation">
-                        <option value="read">Read</option>
-                        <option value="write">Write</option>
-                    </select>
-                    <button onclick="accessMemory()">Access</button>
-                    <div id="error" class="error"></div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <h2>Statistics</h2>
-                <div class="statistics">
-                    <div class="stat-box">
-                        <div>Accesses</div>
-                        <div id="totalAccesses" class="stat-value">0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div>Hits</div>
-                        <div id="hits" class="stat-value">0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div>Misses</div>
-                        <div id="misses" class="stat-value">0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div>Hit Rate</div>
-                        <div id="hitRate" class="stat-value">0%</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="cache-visualization">
-            <h2>Cache Visualization</h2>
-            <div id="cacheDisplay"></div>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>Cache Memory Simulator</h1>
     </div>
 
-    <script>
-        class CacheBlock {
-            constructor(blockSize) {
-                this.valid = false;
-                this.dirty = false;
-                this.tag = -1;
-                this.lastUsed = 0;
-                this.data = new Array(blockSize).fill(0);
-            }
+    <div class="config-panel">
+      <h2>Cache Configuration</h2>
+      <div>
+        <label>Cache Size (bytes):
+          <select id="cacheSize">
+            <option value="1024">1024 (1KB)</option>
+            <option value="2048">2048 (2KB)</option>
+            <option value="4096">4096 (4KB)</option>
+          </select>
+        </label>
+        <label>Block Size (bytes):
+          <select id="blockSize">
+            <option value="16">16</option>
+            <option value="32">32</option>
+            <option value="64">64</option>
+          </select>
+        </label>
+        <label>Associativity:
+          <select id="associativity">
+            <option value="1">Direct Mapped</option>
+            <option value="2">2-Way</option>
+            <option value="4">4-Way</option>
+            <option value="8">8-Way</option>
+          </select>
+        </label>
+        <label>Replacement Policy:
+          <select id="replacementPolicy">
+            <option value="LRU">LRU (Least Recently Used)</option>
+            <option value="FIFO">FIFO (First In First Out)</option>
+            <option value="RANDOM">Random</option>
+          </select>
+        </label>
+        <button onclick="initializeCache()">Initialize Cache</button>
+      </div>
+    </div>
+
+    <div class="control-panel">
+      <div class="panel">
+        <h2>Memory Access</h2>
+        <div>
+          <input type="number" id="address" placeholder="Memory Address">
+          <select id="operation">
+            <option value="read">Read</option>
+            <option value="write">Write</option>
+          </select>
+          <button onclick="accessMemory()">Access</button>
+          <div id="error" class="error"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Statistics (L1 Cache)</h2>
+        <div class="statistics">
+          <div class="stat-box">
+            <div>Accesses</div>
+            <div id="totalAccesses" class="stat-value">0</div>
+          </div>
+          <div class="stat-box">
+            <div>Hits</div>
+            <div id="hits" class="stat-value">0</div>
+          </div>
+          <div class="stat-box">
+            <div>Misses</div>
+            <div id="misses" class="stat-value">0</div>
+          </div>
+          <div class="stat-box">
+            <div>Hit Rate</div>
+            <div id="hitRate" class="stat-value">0%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cache-visualization">
+      <h2>Memory Hierarchy</h2>
+      <div id="memoryHierarchy" class="memory-hierarchy">
+        <div class="cache-level" id="l1Cache">
+          <h3>L1 Cache</h3>
+          <div class="cache-stats"></div>
+        </div>
+        <div class="cache-level" id="l2Cache">
+          <h3>L2 Cache</h3>
+          <div class="cache-stats"></div>
+        </div>
+        <div class="cache-level" id="l3Cache">
+          <h3>L3 Cache</h3>
+          <div class="cache-stats"></div>
+        </div>
+        <div class="cache-level" id="mainMemory">
+          <h3>Main Memory</h3>
+          <div class="cache-stats"></div>
+        </div>
+      </div>
+      <h2>Cache Visualization (L1)</h2>
+      <div id="cacheDisplay"></div>
+    </div>
+  </div>
+
+  <script>
+    class CacheBlock {
+      constructor(blockSize) {
+        this.valid = false;
+        this.dirty = false;
+        this.tag = -1;
+        this.lastUsed = 0;
+        this.firstIn = 0;  // For FIFO
+        this.data = new Array(blockSize).fill(0);
+      }
+    }
+
+    class CacheLevel {
+      constructor(size, blockSize, associativity, replacementPolicy) {
+        this.cacheSize = size;
+        this.blockSize = blockSize;
+        this.associativity = associativity;
+        this.replacementPolicy = replacementPolicy;
+        // Calculate number of sets as: (Cache Size / Block Size) divided by the associativity
+        this.numSets = (size / blockSize) / associativity;
+        this.accessCount = 0;
+        this.hits = 0;
+        this.misses = 0;
+        this.cache = Array.from({ length: this.numSets }, () =>
+          Array.from({ length: associativity }, () => new CacheBlock(blockSize))
+        );
+      }
+
+      // Map an address to a specific set based on index bits
+      getSet(address) {
+        return Math.floor((address / this.blockSize) % this.numSets);
+      }
+
+      // Extract the tag from the address (the remaining higher-order bits)
+      getTag(address) {
+        return Math.floor(address / (this.blockSize * this.numSets));
+      }
+
+      getReplacementBlock(setIndex) {
+        switch(this.replacementPolicy) {
+          case 'LRU':
+            return this.getLRUBlock(setIndex);
+          case 'FIFO':
+            return this.getFIFOBlock(setIndex);
+          case 'RANDOM':
+            return this.getRandomBlock(setIndex);
+          default:
+            return this.getLRUBlock(setIndex);
+        }
+      }
+
+      getLRUBlock(setIndex) {
+        let lruBlock = 0;
+        let minCount = this.cache[setIndex][0].lastUsed;
+        for (let i = 1; i < this.associativity; i++) {
+          if (this.cache[setIndex][i].lastUsed < minCount) {
+            minCount = this.cache[setIndex][i].lastUsed;
+            lruBlock = i;
+          }
+        }
+        return lruBlock;
+      }
+
+      getFIFOBlock(setIndex) {
+        let fifoBlock = 0;
+        let minCount = this.cache[setIndex][0].firstIn;
+        for (let i = 1; i < this.associativity; i++) {
+          if (this.cache[setIndex][i].firstIn < minCount) {
+            minCount = this.cache[setIndex][i].firstIn;
+            fifoBlock = i;
+          }
+        }
+        return fifoBlock;
+      }
+
+      getRandomBlock(setIndex) {
+        return Math.floor(Math.random() * this.associativity);
+      }
+
+      accessMemory(address, isWrite) {
+        this.accessCount++;
+        const setIndex = this.getSet(address);
+        const tag = this.getTag(address);
+        let hit = false;
+        let hitBlock = -1;
+
+        for (let i = 0; i < this.associativity; i++) {
+          if (this.cache[setIndex][i].valid && this.cache[setIndex][i].tag === tag) {
+            hit = true;
+            hitBlock = i;
+            break;
+          }
         }
 
-        class CacheSimulator {
-            constructor(cacheSize, blockSize, associativity) {
-                this.cacheSize = cacheSize;
-                this.blockSize = blockSize;
-                this.associativity = associativity;
-                this.numSets = (cacheSize / blockSize) / associativity;
-                this.accessCount = 0;
-                this.hits = 0;
-                this.misses = 0;
-
-                // Initialize cache structure
-                this.cache = Array(this.numSets).fill().map(() => 
-                    Array(associativity).fill().map(() => new CacheBlock(blockSize))
-                );
-            }
-
-            getSet(address) {
-                return Math.floor((address / this.blockSize) % this.numSets);
-            }
-
-            getTag(address) {
-                return Math.floor(address / (this.blockSize * this.numSets));
-            }
-
-            getLRUBlock(setIndex) {
-                let lruBlock = 0;
-                let minCount = this.cache[setIndex][0].lastUsed;
-
-                for (let i = 1; i < this.associativity; i++) {
-                    if (this.cache[setIndex][i].lastUsed < minCount) {
-                        minCount = this.cache[setIndex][i].lastUsed;
-                        lruBlock = i;
-                    }
-                }
-                return lruBlock;
-            }
-
-            accessMemory(address, isWrite) {
-                this.accessCount++;
-                const setIndex = this.getSet(address);
-                const tag = this.getTag(address);
-                let hit = false;
-                let hitBlock = -1;
-
-                // Check if address is in cache
-                for (let i = 0; i < this.associativity; i++) {
-                    if (this.cache[setIndex][i].valid && this.cache[setIndex][i].tag === tag) {
-                        hit = true;
-                        hitBlock = i;
-                        break;
-                    }
-                }
-
-                if (hit) {
-                    this.hits++;
-                    this.cache[setIndex][hitBlock].lastUsed = this.accessCount;
-                    if (isWrite) {
-                        this.cache[setIndex][hitBlock].dirty = true;
-                    }
-                    return { hit: true, setIndex, blockIndex: hitBlock };
-                } else {
-                    this.misses++;
-                    const replaceBlock = this.getLRUBlock(setIndex);
-
-                    // Load new block
-                    this.cache[setIndex][replaceBlock].valid = true;
-                    this.cache[setIndex][replaceBlock].dirty = isWrite;
-                    this.cache[setIndex][replaceBlock].tag = tag;
-                    this.cache[setIndex][replaceBlock].lastUsed = this.accessCount;
-                    return { hit: false, setIndex, blockIndex: replaceBlock };
-                }
-            }
-
-            getStatistics() {
-                return {
-                    accesses: this.accessCount,
-                    hits: this.hits,
-                    misses: this.misses,
-                    hitRate: this.accessCount > 0 ? 
-                        (this.hits / this.accessCount * 100).toFixed(2) : 0
-                };
-            }
+        if (hit) {
+          this.hits++;
+          this.cache[setIndex][hitBlock].lastUsed = this.accessCount;
+          if (isWrite) {
+            this.cache[setIndex][hitBlock].dirty = true;
+          }
+          return { hit: true, setIndex, blockIndex: hitBlock };
+        } else {
+          this.misses++;
+          const replaceBlock = this.getReplacementBlock(setIndex);
+          this.cache[setIndex][replaceBlock].valid = true;
+          this.cache[setIndex][replaceBlock].dirty = isWrite;
+          this.cache[setIndex][replaceBlock].tag = tag;
+          this.cache[setIndex][replaceBlock].lastUsed = this.accessCount;
+          this.cache[setIndex][replaceBlock].firstIn = this.accessCount;
+          return { hit: false, setIndex, blockIndex: replaceBlock };
         }
+      }
 
-        let cacheSimulator;
+      getStatistics() {
+        return {
+          size: this.cacheSize,
+          blockSize: this.blockSize,
+          associativity: this.associativity,
+          accesses: this.accessCount,
+          hits: this.hits,
+          misses: this.misses,
+          hitRate: this.accessCount > 0 ?
+                    (this.hits / this.accessCount * 100).toFixed(2) : 0
+        };
+      }
+    }
 
-        function initializeCache() {
-            const cacheSize = parseInt(document.getElementById('cacheSize').value);
-            const blockSize = parseInt(document.getElementById('blockSize').value);
-            const associativity = parseInt(document.getElementById('associativity').value);
+    // Memory Hierarchy with configurable L1, fixed settings for L2 and L3, and Main Memory.
+    class MemoryHierarchy {
+      constructor(l1Size, l1BlockSize, l1Associativity, replacementPolicy) {
+        this.l1Cache = new CacheLevel(l1Size, l1BlockSize, l1Associativity, replacementPolicy);
+        this.l2Cache = new CacheLevel(262144, 64, 8, replacementPolicy); // 256KB L2
+        this.l3Cache = new CacheLevel(8388608, 64, 16, replacementPolicy); // 8MB L3
+        this.mainMemory = {
+          accessCount: 0,
+          getStatistics: () => ({
+            size: "16GB",
+            accesses: this.mainMemory.accessCount
+          })
+        };
+      }
 
-            cacheSimulator = new CacheSimulator(cacheSize, blockSize, associativity);
-            updateCacheVisualization();
-            updateStatistics();
-        }
-
-        function accessMemory() {
-            if (!cacheSimulator) {
-                document.getElementById('error').textContent = 'Please initialize the cache first!';
-                return;
+      accessMemory(address, isWrite) {
+        let result = this.l1Cache.accessMemory(address, isWrite);
+        if (!result.hit) {
+          result = this.l2Cache.accessMemory(address, isWrite);
+          if (!result.hit) {
+            result = this.l3Cache.accessMemory(address, isWrite);
+            if (!result.hit) {
+              this.mainMemory.accessCount++;
             }
-
-            const address = parseInt(document.getElementById('address').value);
-            const operation = document.getElementById('operation').value;
-
-            if (isNaN(address)) {
-                document.getElementById('error').textContent = 'Please enter a valid address!';
-                return;
-            }
-
-            document.getElementById('error').textContent = '';
-            const result = cacheSimulator.accessMemory(address, operation === 'write');
-            updateCacheVisualization(result);
-            updateStatistics();
+          }
         }
+        return result;
+      }
+    }
 
-        function updateStatistics() {
-            if (!cacheSimulator) return;
+    let memoryHierarchy;
 
-            const stats = cacheSimulator.getStatistics();
-            document.getElementById('totalAccesses').textContent = stats.accesses;
-            document.getElementById('hits').textContent = stats.hits;
-            document.getElementById('misses').textContent = stats.misses;
-            document.getElementById('hitRate').textContent = stats.hitRate + '%';
+    function initializeCache() {
+      // Read configuration values from the UI
+      const cacheSize = parseInt(document.getElementById('cacheSize').value);
+      const blockSize = parseInt(document.getElementById('blockSize').value);
+      const associativity = parseInt(document.getElementById('associativity').value);
+      const replacementPolicy = document.getElementById('replacementPolicy').value;
+      
+      memoryHierarchy = new MemoryHierarchy(cacheSize, blockSize, associativity, replacementPolicy);
+      updateCacheVisualization();
+      updateStatistics();
+    }
+
+    function accessMemory() {
+      if (!memoryHierarchy) {
+        document.getElementById('error').textContent = 'Please initialize the cache first!';
+        return;
+      }
+
+      const address = parseInt(document.getElementById('address').value);
+      const operation = document.getElementById('operation').value;
+
+      if (isNaN(address)) {
+        document.getElementById('error').textContent = 'Please enter a valid address!';
+        return;
+      }
+
+      document.getElementById('error').textContent = '';
+      const result = memoryHierarchy.accessMemory(address, operation === 'write');
+      updateCacheVisualization(result);
+      updateStatistics();
+    }
+
+    function updateStatistics() {
+      if (!memoryHierarchy) return;
+
+      // Get statistics for each cache level
+      const l1Stats = memoryHierarchy.l1Cache.getStatistics();
+      const l2Stats = memoryHierarchy.l2Cache.getStatistics();
+      const l3Stats = memoryHierarchy.l3Cache.getStatistics();
+      const mainMemoryStats = memoryHierarchy.mainMemory.getStatistics();
+
+      // Update Memory Hierarchy stats
+      document.querySelector('#l1Cache .cache-stats').innerHTML = `
+        <div>Size: ${(l1Stats.size/1024).toFixed(0)}KB</div>
+        <div>Hits: ${l1Stats.hits}</div>
+        <div>Hit Rate: ${l1Stats.hitRate}%</div>
+      `;
+      document.querySelector('#l2Cache .cache-stats').innerHTML = `
+        <div>Size: ${(l2Stats.size/1024).toFixed(0)}KB</div>
+        <div>Hits: ${l2Stats.hits}</div>
+        <div>Hit Rate: ${l2Stats.hitRate}%</div>
+      `;
+      document.querySelector('#l3Cache .cache-stats').innerHTML = `
+        <div>Size: ${(l3Stats.size/1024/1024).toFixed(0)}MB</div>
+        <div>Hits: ${l3Stats.hits}</div>
+        <div>Hit Rate: ${l3Stats.hitRate}%</div>
+      `;
+      document.querySelector('#mainMemory .cache-stats').innerHTML = `
+        <div>Size: ${mainMemoryStats.size}</div>
+        <div>Accesses: ${mainMemoryStats.accesses}</div>
+      `;
+
+      // Update top-level aggregated statistics for L1 cache (as every access starts here)
+      document.getElementById('totalAccesses').textContent = l1Stats.accesses;
+      document.getElementById('hits').textContent = l1Stats.hits;
+      document.getElementById('misses').textContent = l1Stats.misses;
+      document.getElementById('hitRate').textContent = l1Stats.hitRate + '%';
+    }
+
+    function updateCacheVisualization(lastAccess = null) {
+      if (!memoryHierarchy) return;
+
+      const cacheDisplay = document.getElementById('cacheDisplay');
+      cacheDisplay.innerHTML = '';
+
+      // Visualize only the L1 Cache here (each set with its blocks)
+      const l1Cache = memoryHierarchy.l1Cache;
+      for (let i = 0; i < l1Cache.numSets; i++) {
+        const setDiv = document.createElement('div');
+        setDiv.className = 'cache-set';
+        setDiv.innerHTML = `<strong>Set ${i}</strong>`;
+
+        for (let j = 0; j < l1Cache.associativity; j++) {
+          const block = l1Cache.cache[i][j];
+          const blockDiv = document.createElement('div');
+          blockDiv.className = 'cache-block';
+
+          if (lastAccess && lastAccess.setIndex === i && lastAccess.blockIndex === j) {
+            blockDiv.className += lastAccess.hit ? ' hit' : ' miss';
+          }
+
+          blockDiv.innerHTML = `
+            <div>Block ${j}</div>
+            <div>Valid: ${block.valid}</div>
+            <div>Tag: ${block.tag}</div>
+            <div>Dirty: ${block.dirty}</div>
+          `;
+          setDiv.appendChild(blockDiv);
         }
+        cacheDisplay.appendChild(setDiv);
+      }
+    }
 
-        function updateCacheVisualization(lastAccess = null) {
-            if (!cacheSimulator) return;
-
-            const cacheDisplay = document.getElementById('cacheDisplay');
-            cacheDisplay.innerHTML = '';
-
-            for (let i = 0; i < cacheSimulator.numSets; i++) {
-                const setDiv = document.createElement('div');
-                setDiv.className = 'cache-set';
-                setDiv.innerHTML = `<strong>Set ${i}</strong>`;
-
-                for (let j = 0; j < cacheSimulator.associativity; j++) {
-                    const block = cacheSimulator.cache[i][j];
-                    const blockDiv = document.createElement('div');
-                    blockDiv.className = 'cache-block';
-                    
-                    if (lastAccess && lastAccess.setIndex === i && lastAccess.blockIndex === j) {
-                        blockDiv.className += lastAccess.hit ? ' hit' : ' miss';
-                    }
-
-                    blockDiv.innerHTML = `
-                        <div>Block ${j}</div>
-                        <div>Valid: ${block.valid}</div>
-                        <div>Tag: ${block.tag}</div>
-                        <div>Dirty: ${block.dirty}</div>
-                    `;
-                    setDiv.appendChild(blockDiv);
-                }
-                cacheDisplay.appendChild(setDiv);
-            }
-        }
-
-        
-        initializeCache();
-    </script>
+    // Initialize the cache on page load
+    initializeCache();
+  </script>
 </body>
 </html>
